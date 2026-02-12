@@ -230,7 +230,7 @@
         try {
             const response = await fetch(WEBHOOK_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
                 body: JSON.stringify({
                     module: currentModule,
                     message: text,
