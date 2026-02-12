@@ -7,7 +7,7 @@
     'use strict';
 
     // ===== CONFIG =====
-    const WEBHOOK_URL = 'https://antigravity.app.n8n.cloud/webhook/foundation-tutor';
+    const WEBHOOK_URL = 'https://innovlead.app.n8n.cloud/webhook/foundation-tutor';
 
     const MODULES = {
         'ai-ethics': {
