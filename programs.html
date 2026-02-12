@@ -15,6 +15,7 @@
         rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest" defer></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="chat-widget.css">
 </head>
 
 <body>
@@ -127,7 +128,8 @@
                             interact
                             with AI systems in their daily lives and work.</p>
 
-                        <a href="/learn/" class="btn btn-primary" style="margin-top: 1rem;">
+                        <a href="#" onclick="openTutor('ai-ethics'); return false;" class="btn btn-primary"
+                            style="margin-top: 1rem;">
                             <i data-lucide="play"></i> Start This Program
                         </a>
                     </div>
@@ -180,7 +182,8 @@
                             managing donor
                             data, and individuals who want to understand how their data is being used.</p>
 
-                        <a href="/learn/" class="btn btn-primary" style="margin-top: 1rem;">
+                        <a href="#" onclick="openTutor('pipeda'); return false;" class="btn btn-primary"
+                            style="margin-top: 1rem;">
                             <i data-lucide="play"></i> Start This Program
                         </a>
                     </div>
@@ -228,7 +231,8 @@
                             needing
                             operational efficiency, and community organizations looking to scale their impact.</p>
 
-                        <a href="/learn/" class="btn btn-primary" style="margin-top: 1rem;">
+                        <a href="#" onclick="openTutor('automation'); return false;" class="btn btn-primary"
+                            style="margin-top: 1rem;">
                             <i data-lucide="play"></i> Start This Program
                         </a>
                     </div>
@@ -270,7 +274,8 @@
         <div class="container">
             <h2>Ready to Start Learning?</h2>
             <p>All programs are completely free. No registration required. Start learning today.</p>
-            <a href="/learn/" class="btn btn-white"><i data-lucide="book-open"></i> Go to Learning Platform</a>
+            <a href="#" onclick="openTutor('ai-ethics'); return false;" class="btn btn-white"><i
+                    data-lucide="book-open"></i> Start Learning Now</a>
         </div>
     </section>
 
@@ -289,6 +294,7 @@
     </footer>
 
     <script src="main.js"></script>
+    <script src="chat-widget.js"></script>
 </body>
 
 </html>

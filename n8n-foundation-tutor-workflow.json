@@ -1,0 +1,148 @@
+{
+    "name": "Foundation AI Tutor",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "foundation-tutor",
+                "responseMode": "responseNode",
+                "options": {
+                    "allowedOrigins": "https://innovlead.org"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                240,
+                300
+            ],
+            "id": "webhook-tutor-1",
+            "name": "Webhook"
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $input.first().json.body;\nconst module = body.module || 'ai-ethics';\nconst message = body.message || '';\nconst history = body.history || [];\n\n// Build conversation messages for Gemini\nconst SYSTEM_PROMPTS = {\n  'ai-ethics': `You are a friendly, expert AI Ethics tutor for the Innovalead Foundation, a Canadian federal not-for-profit.\n\nYour role: Teach AI ethics in plain language to vulnerable communities (newcomers, Indigenous communities, low-income families, seniors, NGO staff).\n\nCurriculum (5 lessons):\n1. AI Fundamentals — what AI is, how machine learning works, everyday examples\n2. Bias Recognition — how bias enters AI systems, real-world impact on marginalized groups, how to spot it\n3. Generative AI Ethics — responsible use of ChatGPT/Claude, misinformation risks, deepfakes\n4. AI for Social Good — positive applications in healthcare, education, environment\n5. Responsible Development — advocacy, regulation, community voice in AI governance\n\nRules:\n- Keep responses concise (2-3 short paragraphs max)\n- Use real examples and analogies\n- Ask questions to check understanding\n- Be encouraging and patient\n- If asked something off-topic, gently redirect to AI ethics\n- Support English, Spanish, and French`,\n  \n  'pipeda': `You are a friendly Privacy Education tutor for the Innovalead Foundation, a Canadian federal not-for-profit.\n\nYour role: Teach PIPEDA (Personal Information Protection and Electronic Documents Act) in plain language.\n\nCurriculum (6 lessons):\n1. PIPEDA Basics — what it is, who it applies to, the 10 fair information principles\n2. Your Rights — right to access, correct, and challenge your personal data\n3. Consent & Collection — how organizations must get consent, what they can/cannot collect\n4. Data Breaches — what counts as a breach, notification requirements, what to do\n5. NGO Compliance — how nonprofits should handle donor/volunteer data\n6. Taking Action — how to file complaints with the Privacy Commissioner of Canada\n\nRules:\n- Keep responses concise (2-3 short paragraphs max)\n- Use Canadian examples and scenarios\n- Reference actual PIPEDA principles by name when relevant\n- Be encouraging and patient\n- If asked something off-topic, gently redirect to privacy\n- Support English, Spanish, and French`,\n  \n  'automation': `You are a friendly Digital Skills tutor for the Innovalead Foundation, a Canadian federal not-for-profit.\n\nYour role: Teach automation tools to nonprofits and job-seekers. Focus on free, low-code tools.\n\nCurriculum (4 lessons):\n1. Automation Basics — what automation is, identifying tasks worth automating, ROI for NGOs\n2. Introduction to n8n — what n8n is, basic concepts (nodes, workflows, triggers)\n3. Workflow Design — designing practical workflows: form submissions, email notifications, data entry\n4. Zero Budget Tools — Google Forms + Sheets automation, Zapier free tier, Make.com, IFTTT\n\nRules:\n- Keep responses concise (2-3 short paragraphs max)\n- Give practical, step-by-step examples\n- Focus on free tools only\n- Be encouraging — automation is easier than it sounds\n- If asked something off-topic, gently redirect to automation\n- Support English, Spanish, and French`\n};\n\nconst systemPrompt = SYSTEM_PROMPTS[module] || SYSTEM_PROMPTS['ai-ethics'];\n\n// Build messages array for Gemini\nlet conversationText = '';\nfor (const msg of history.slice(-8)) {\n  if (msg.role === 'user') {\n    conversationText += `Student: ${msg.content}\\n`;\n  } else if (msg.role === 'assistant') {\n    conversationText += `Tutor: ${msg.content}\\n`;\n  }\n}\n\n// Current message\nconversationText += `Student: ${message}\\nTutor:`;\n\nreturn [{\n  json: {\n    systemPrompt,\n    conversationText,\n    module,\n    message\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                480,
+                300
+            ],
+            "id": "code-build-prompt-1",
+            "name": "Build Prompt"
+        },
+        {
+            "parameters": {
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-2.5-flash",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-2.5-flash"
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "content": "={{ $json.systemPrompt }}\n\n---\n\nConversation:\n{{ $json.conversationText }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1,
+            "position": [
+                720,
+                300
+            ],
+            "id": "gemini-tutor-1",
+            "name": "Gemini Tutor"
+        },
+        {
+            "parameters": {
+                "jsCode": "const geminiOutput = $input.first().json;\n\n// Extract the text response from Gemini\nlet response = '';\n\nif (geminiOutput.content?.parts?.[0]?.text) {\n  response = geminiOutput.content.parts[0].text;\n} else if (geminiOutput.text) {\n  response = geminiOutput.text;\n} else if (typeof geminiOutput === 'string') {\n  response = geminiOutput;\n} else {\n  response = 'I had a small hiccup processing that. Could you rephrase your question?';\n}\n\n// Clean up any leading \"Tutor:\" prefix\nresponse = response.replace(/^Tutor:\\s*/i, '').trim();\n\nreturn [{\n  json: {\n    response\n  }\n}];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                960,
+                300
+            ],
+            "id": "code-format-response-1",
+            "name": "Format Response"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify({ response: $json.response }) }}",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.1,
+            "position": [
+                1200,
+                300
+            ],
+            "id": "respond-webhook-1",
+            "name": "Respond to Webhook"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Build Prompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Prompt": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini Tutor",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Tutor": {
+            "main": [
+                [
+                    {
+                        "node": "Format Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Response": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}
